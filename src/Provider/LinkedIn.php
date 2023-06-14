@@ -35,6 +35,29 @@ class LinkedIn extends AbstractProvider
     ];
 
     /**
+     * Version API to use in requests.
+     * See https://learn.microsoft.com/en-us/linkedin/marketing/versioning?view=li-lms-2023-05#how-your-api-client-should-use-versioning
+     * We must include a request header with the key “LinkedIn-Version” and the value to the version (format: YYYYMM)
+     *
+     * @var string
+     */
+    protected $linkedInVersion = '202304';
+
+    /**
+     * Returns the default headers used by this provider.
+     *
+     * Typically this is used to set 'Accept' or 'Content-Type' headers.
+     *
+     * @return array
+     */
+    protected function getDefaultHeaders()
+    {
+        return [
+            'LinkedIn-Version' => $this->linkedInVersion,
+        ];
+    }
+
+    /**
      * Constructs an OAuth 2.0 service provider.
      *
      * @param array $options An array of options to set on this provider.
@@ -49,6 +72,9 @@ class LinkedIn extends AbstractProvider
     {
         if (isset($options['fields']) && !is_array($options['fields'])) {
             throw new InvalidArgumentException('The fields option must be an array');
+        }
+        if (!empty($options['linkedInVersion'])) {
+            $this->linkedInVersion = $options['linkedInVersion'];
         }
 
         parent::__construct($options, $collaborators);
@@ -113,7 +139,7 @@ class LinkedIn extends AbstractProvider
             'projection' => '(' . implode(',', $this->fields) . ')'
         ]);
 
-        return 'https://api.linkedin.com/v2/me?' . urldecode($query);
+        return 'https://api.linkedin.com/rest/me?' . urldecode($query);
     }
 
     /**
@@ -127,7 +153,7 @@ class LinkedIn extends AbstractProvider
     {
         $query = http_build_query([
             'q' => 'members',
-            'projection' => '(elements*(state,primary,type,handle~))'
+            'projection' => '(elements*(state,primary,type,handle~))',
         ]);
 
         return 'https://api.linkedin.com/v2/clientAwareMemberHandles?' . urldecode($query);
